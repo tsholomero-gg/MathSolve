@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A and B Work Completion - Step by Step Math</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    background: #f4f6fb;
+    margin: 0;
+    padding: 24px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .container {
+    background: #fff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(20,30,60,0.08);
+    max-width: 600px;
+    width: 100%;
+  }
+
+  h2 {
+    text-align: center;
+    color: #172033;
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    margin-top: 12px;
+    font-weight: 600;
+    color: #3a4757;
+  }
+
+  input[type="number"], select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    border-radius: 8px;
+    border: 1px solid #d7dbe6;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+
+  button {
+    width: 100%;
+    margin-top: 18px;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    background: #0b6cff;
+    color: white;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  button:hover { filter: brightness(0.95); }
+
+  .output-section {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    background: #f0f5ff;
+    border: 1px dashed #c6d7ff;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+    font-size: 14px;
+    color: #10203a;
+  }
+
+  .final-answer {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    background: #e6ffed;
+    border: 1px solid #1aab2a;
+    font-weight: 700;
+    color: #0a8f20;
+    text-align: center;
+    font-size: 15px;
+  }
+
+  .error {
+    background:#fff1f0;
+    color:#7b1e1e;
+    padding:10px;
+    border-radius:6px;
+    border:1px solid #ffd6d6;
+    font-weight:700;
+  }
+
+  .muted {
+    font-weight: 500;
+    color: #5b6b7a;
+    font-size: 13px;
+    margin-top: 6px;
+    display: block;
+  }
+
+  .step { margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>A and B Work Completion Math</h2>
+
+  <form id="myForm">
+    <label for="day1">A's days to complete the work</label>
+    <input type="number" id="day1" min="0" step="any" placeholder="Enter A's days (e.g. 10)" required>
+
+    <label for="day2">B's days to complete the work</label>
+    <input type="number" id="day2" min="0" step="any" placeholder="Enter B's days (e.g. 15)" required>
+
+    <label for="A_B_option">Who is leaving?</label>
+    <select id="A_B_option" required>
+      <option value="" disabled selected>Select option</option>
+      <option value="A">A</option>
+      <option value="B">B</option>
+    </select>
+
+    <label for="leavingDay">After how many days leaving?</label>
+    <input type="number" id="leavingDay" min="0" step="any" placeholder="Days worked together before one leaves" required>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <div class="output-section" id="mathSteps">
+    Math steps will appear here...
+  </div>
+
+  <div class="final-answer" id="finalAnswer">
+    Final answer will appear here...
+  </div>
+
+  <div class="muted">
+    Notes: Inputs must be greater than 0 (days cannot be zero or negative). The script will validate entries.
+  </div>
+</div>
+
+<script>
+    function fmt(n, maxDigits=6) {
+    if(!isFinite(n)) return String(n);
+    const abs = Math.abs(n);
+    let digits=maxDigits;
+    if(abs>=1) digits=4;
+    if(abs>=1000) digits=2;
+    let s = n.toFixed(digits);
+    s = s.replace(/(?:\.0+|(\.\d+?)0+)$/, '$1');
+    return s;
+    }
+
+    const form = document.getElementById('myForm');
+    const mathSteps = document.getElementById('mathSteps');
+    const finalAnswer = document.getElementById('finalAnswer');
+
+    form.addEventListener('submit', function(ev){
+    ev.preventDefault();
+
+    const d1=parseFloat(document.getElementById('day1').value);
+    const d2=parseFloat(document.getElementById('day2').value);
+    const whoLeaves=document.getElementById('A_B_option').value;
+    const leavingDay=parseFloat(document.getElementById('leavingDay').value);
+
+    const errs = [];
+    if(isNaN(d1)||isNaN(d2)||isNaN(leavingDay)||!whoLeaves) errs.push('Please fill all fields.');
+    if(!isNaN(d1)&&d1<=0) errs.push("A's days must be greater than 0.");
+    if(!isNaN(d2)&&d2<=0) errs.push("B's days must be greater than 0.");
+    if(!isNaN(leavingDay)&&leavingDay<0) errs.push('Leaving day cannot be negative.');
+
+    if(errs.length){
+        mathSteps.innerHTML='<div class="error">'+errs.join('<br>')+'</div>';
+        finalAnswer.innerHTML='';
+        return;
+    }
+
+    const rateA = 1/d1;
+    const rateB = 1/d2;
+    const combinedRate = rateA + rateB;
+    const daysToFinishTogether = 1 / combinedRate;
+
+    let workDoneTogether, workRemaining, daysByAlone, totalDays;
+    let remainingWorker = whoLeaves==='A'?'B':'A';
+    let remainingRate = remainingWorker==='A'?rateA:rateB;
+
+    const steps = [];
+
+    // Step 1: Work rates
+    steps.push(`<div class="step"><strong>Step 1:</strong> Calculate 1-day work for each.</div>`);
+    steps.push(`<div class="step">A's 1-day work = 1 ÷ ${fmt(d1)} = ${fmt(rateA)}</div>`);
+    steps.push(`<div class="step">B's 1-day work = 1 ÷ ${fmt(d2)} = ${fmt(rateB)}</div>`);
+
+    steps.push(`<div class="step"><strong>Step 2:</strong> Combined work per day.</div>`);
+    steps.push(`<div class="step">Combined work = ${fmt(rateA)} + ${fmt(rateB)} = ${fmt(combinedRate)}</div>`);
+
+    if(leavingDay >= daysToFinishTogether){
+        // Work finishes before anyone leaves
+        workDoneTogether = 1;
+        workRemaining = 0;
+        daysByAlone = 0;
+        totalDays = daysToFinishTogether;
+
+        steps.push(`<div class="step" style="background:#fff4c2; padding:5px; border-radius:4px;"><strong>Step 3:</strong> Work done together for ${fmt(leavingDay)} day(s).</div>`);
+        steps.push(`<div class="step" style="background:#fff4c2; padding:5px; border-radius:4px;">The work is already completed in ${fmt(daysToFinishTogether)} day(s) before anyone leaves. Remaining person does 0 extra days.</div>`);
+
+    } else {
+        // Work remaining after leaving
+        workDoneTogether = leavingDay * combinedRate;
+        workRemaining = 1 - workDoneTogether;
+        daysByAlone = workRemaining / remainingRate;
+        totalDays = leavingDay + daysByAlone;
+
+        steps.push(`<div class="step"><strong>Step 3:</strong> Work done together in ${fmt(leavingDay)} day(s).</div>`);
+        steps.push(`<div class="step">Work done together = ${fmt(leavingDay)} × ${fmt(combinedRate)} = ${fmt(workDoneTogether)}</div>`);
+
+        steps.push(`<div class="step"><strong>Step 4:</strong> Remaining work after ${whoLeaves} leaves.</div>`);
+        steps.push(`<div class="step">Remaining work = 1 - ${fmt(workDoneTogether)} = ${fmt(workRemaining)}</div>`);
+
+        steps.push(`<div class="step"><strong>Step 5:</strong> ${remainingWorker} completes remaining work alone.</div>`);
+        steps.push(`<div class="step">Days by ${remainingWorker} = ${fmt(workRemaining)} ÷ ${fmt(remainingRate)} = ${fmt(daysByAlone)}</div>`);
+    }
+
+    steps.push(`<div class="step"><strong>Step 6:</strong> Total days to complete work.</div>`);
+    steps.push(`<div class="step">Total days = ${fmt(totalDays)}</div>`);
+
+    mathSteps.innerHTML = steps.join('');
+    finalAnswer.innerHTML = `✅ Therefore, the whole work was completed in <strong>${fmt(totalDays)}</strong> day(s).`;
+    });
+</script>
+
+</body>
+</html>
+
