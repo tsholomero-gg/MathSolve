@@ -222,8 +222,8 @@
         steps.push(`<div class="step">Days by ${remainingWorker} = ${fmt(workRemaining)} ÷ ${fmt(remainingRate)} = ${fmt(daysByAlone)}</div>`);
     }
 
-    steps.push(`<div class="step"><strong>Step 6:</strong> Total days to complete work.</div>`);
-    steps.push(`<div class="step">Total days = ${fmt(totalDays)}</div>`);
+  steps.push(`<div class="step"><strong>Step 6:</strong> Total days to complete work.</div>`);
+  steps.push(`<div class="step">Total days = ${fmt(leavingDay)} + ${fmt(daysByAlone)} = ${fmt(totalDays)}</div>`);
 
     mathSteps.innerHTML = steps.join('');
     finalAnswer.innerHTML = `✅ Therefore, the whole work was completed in <strong>${fmt(totalDays)}</strong> day(s).`;
